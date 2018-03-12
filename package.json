@@ -1,15 +1,15 @@
 {
   "author": "yubin",
   "name": "napi_sdl2",
-  "description": "SDL2 bindings with node",
-  "version": "0.1.0",
+  "description": "SDL2 bindings with N-API",
+  "version": "0.1.3",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/yubin1026/napi_sdl2.git"
   },
   "homepage": "https://github.com/yubin1026/napi_sdl2",
-  "keyword": [
+  "keywords": [
     "napi",
     "sdl2"
   ],
@@ -18,5 +18,15 @@
     "node": ">=0.10.0"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "scripts": {
+    "install": "node-gyp rebuild"
+  },
+  "gypfile": true,
+  "bugs": {
+    "url": "https://github.com/yubin1026/napi_sdl2/issues"
+  },
+  "directories": {
+    "example": "examples"
+  }
 }
