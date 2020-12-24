@@ -3,7 +3,8 @@ import SDL2 from '../index.mjs';
 
 const context = {
     window : null,
-    rendere : null
+    rendere : null,
+    font : null
 };
 
 function render(context)
@@ -12,12 +13,20 @@ function render(context)
     let [screen_width, screen_height] = SDL2.SDL_GetWindowSize(context.window);
 
     //Clear screen
-    SDL2.SDL_SetRenderDrawColor( context.renderer, [0xFF, 0xFF, 0xFF, 0xFF] );
+    SDL2.SDL_SetRenderDrawColor( context.renderer, [0xC0, 0xC0, 0xC0, 0xFF] );
     SDL2.SDL_RenderClear( context.renderer );
 
-    //Render red filled quad
-    SDL2.SDL_SetRenderDrawColor( context.renderer, [0xFF, 0x00, 0x00, 0xFF] );
-    SDL2.SDL_RenderFillRect( context.renderer, [screen_width / 4, screen_height / 4, screen_width / 2, screen_height / 2 ] );
+    //Render text message
+    if (context.font) {
+
+        const msgSurface = SDL2.TTF_RenderText_Solid(context.font, "Hello, wrold!", [255, 255, 255]);
+        const newTexture = SDL2.SDL_CreateTextureFromSurface(context.renderer, msgSurface);
+
+        SDL2.SDL_RenderCopy(context.renderer, newTexture, null, null);
+        SDL2.SDL_FreeSurface(msgSurface);
+        SDL2.SDL_DestroyTexture(newTexture);
+
+    }
 
     //Update screen
     SDL2.SDL_RenderPresent( context.renderer );
@@ -27,6 +36,9 @@ function render(context)
 function main() {
 
     SDL2.SDL_Init(SDL2.SDL_INIT_EVERYTHING);
+    SDL2.TTF_Init();
+
+    context.font = SDL2.TTF_OpenFont("FreeSans.ttf", 24);
 
     const numVideoDisplays = SDL2.SDL_GetNumVideoDisplays();
     console.log(`Number video displays: ${numVideoDisplays}`);
@@ -74,6 +86,7 @@ function main() {
 
     }
 
+    SDL2.TTF_Quit();
     SDL2.SDL_DestroyRenderer(context.renderer);
     SDL2.SDL_DestroyWindow(context.window);
     SDL2.SDL_Quit();
@@ -81,3 +94,4 @@ function main() {
 }
 
 main();
+

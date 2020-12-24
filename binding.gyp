@@ -8,10 +8,14 @@
         'conditions': [
             ['OS=="linux"', {
                 'libraries': [
-                    '<!@(pkg-config sdl2 --libs)',
+                    '-lSDL2',
+                    '-lSDL2_ttf',
                 ],
                 'include_dirs': [
-                    '<!@(pkg-config sdl2 --cflags)',
+                    '-I/usr/include/SDL2',
+                ],
+                'defines': [
+                    '_REENTRANT'
                 ]
             }],
             ['OS=="mac"', {

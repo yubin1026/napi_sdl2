@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 //#include <SDL.h>
 //#include <SDL_opengl.h>
+#include <SDL2/SDL_ttf.h>
 
 #define NAPI_VERSION 5
 #include <node_api.h>
@@ -416,7 +417,38 @@ napi_value SDL_UpdateTexture_Callback(napi_env env, napi_callback_info info) {
 
   napi_value ret;
   napi_get_undefined(env, &ret);
-  
+  return ret;
+}
+
+napi_value SDL_CreateTextureFromSurface_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 2;
+  napi_value argv[2];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int arg0, arg1;
+  napi_get_value_int32(env, argv[0], &arg0);
+  napi_get_value_int32(env, argv[1], &arg1);
+
+  SDL_Texture *texture = SDL_CreateTextureFromSurface((SDL_Renderer*)arg0, (SDL_Surface*)arg1);
+
+  napi_value ret;
+  napi_create_int64(env, (int64_t) texture, &ret);
+  return ret;
+}
+
+napi_value SDL_FreeSurface_Callback(napi_env env, napi_callback_info info) {
+  size_t argc = 1;
+  napi_value argv[1];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int arg0;
+  napi_get_value_int32(env, argv[0], &arg0);
+
+  SDL_FreeSurface((SDL_Surface*)arg0);
+
+  napi_value ret;
+  napi_get_undefined(env, &ret);
   return ret;
 }
 
@@ -885,6 +917,77 @@ napi_value SDL_CreateSystemCursor_Callback(napi_env env, napi_callback_info info
 
 /////
 
+napi_value TTF_Init_Callback(napi_env env, napi_callback_info info) {
+  size_t argc = 0;
+  napi_value argv[0];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  TTF_Init();
+
+  napi_value ret;
+  napi_get_undefined(env, &ret);
+  return ret;
+}
+
+napi_value TTF_OpenFont_Callback(napi_env env, napi_callback_info info) {
+  size_t argc = 2;
+  napi_value argv[2];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  char path[256] = {0};
+  size_t len;
+  napi_get_value_string_utf8(env, argv[0], path, 256, &len);
+
+  int size;
+  napi_get_value_int32(env, argv[1], &size);
+
+  TTF_Font* font = TTF_OpenFont(path, size);
+
+  napi_value ret;
+  napi_create_int64(env, (int64_t) font, &ret);
+  return ret;
+}
+
+napi_value TTF_CloseFont_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 1;
+  napi_value argv[1];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int64_t arg0;
+  napi_get_value_int64(env, argv[0], &arg0);
+
+  TTF_CloseFont((TTF_Font*)arg0);
+
+  napi_value ret;
+  napi_get_undefined(env, &ret);
+  return ret;
+}
+
+napi_value TTF_RenderText_Solid_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 2;
+  napi_value argv[2];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int64_t arg0;
+  napi_get_value_int64(env, argv[0], &arg0);
+
+  char arg1[512] = {0};
+  size_t len;
+  napi_get_value_string_utf8(env, argv[1], arg1, 512, &len);
+
+  SDL_Color color = { 0x00, 0xC0, 0x00 };
+
+  SDL_Surface *surface = TTF_RenderText_Solid((TTF_Font*)arg0, arg1, color);
+
+  napi_value ret;
+  napi_create_int64(env, (int64_t) surface, &ret);
+  return ret;
+}
+
+/////
+
 napi_value Init(napi_env env, napi_value exports) {
 
   NAPI_DEFINE_CONSTANT(exports, SDL_INIT_VIDEO);
@@ -932,7 +1035,7 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_DEFINE_CONSTANT(exports, KMOD_CTRL);
   NAPI_DEFINE_CONSTANT(exports, KMOD_SHIFT);
   NAPI_DEFINE_CONSTANT(exports, KMOD_ALT);
-  
+
 
   NAPI_DEFINE_CONSTANT(exports, SDL_GL_CONTEXT_FLAGS);
   NAPI_DEFINE_CONSTANT(exports, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
@@ -979,10 +1082,13 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_SET_METHOD(exports, "SDL_RenderCopy", SDL_RenderCopy_Callback);
   NAPI_SET_METHOD(exports, "SDL_RenderFillRect", SDL_RenderFillRect_Callback);
 
-
-  NAPI_SET_METHOD(exports, "SDL_CreateTexture", SDL_CreateTexture_Callback);  
-  NAPI_SET_METHOD(exports, "SDL_DestroyTexture", SDL_DestroyTexture_Callback);  
+  NAPI_SET_METHOD(exports, "SDL_CreateTexture", SDL_CreateTexture_Callback);
+  NAPI_SET_METHOD(exports, "SDL_DestroyTexture", SDL_DestroyTexture_Callback);
   NAPI_SET_METHOD(exports, "SDL_UpdateTexture", SDL_UpdateTexture_Callback);
+
+  NAPI_SET_METHOD(exports, "SDL_CreateTextureFromSurface", SDL_CreateTextureFromSurface_Callback);
+
+  NAPI_SET_METHOD(exports, "SDL_FreeSurface", SDL_FreeSurface_Callback);
 
   NAPI_SET_METHOD(exports, "SDL_Delay", SDL_Delay_Callback);
   NAPI_SET_METHOD(exports, "SDL_GetTicks", SDL_GetTicks_Callback);
@@ -1008,6 +1114,11 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_SET_METHOD(exports, "SDL_GL_CreateContext", SDL_GL_CreateContext_Callback);
   NAPI_SET_METHOD(exports, "SDL_GL_SetSwapInterval", SDL_GL_SetSwapInterval_Callback);
   NAPI_SET_METHOD(exports, "SDL_GL_SwapWindow", SDL_GL_SwapWindow_Callback);
+
+  NAPI_SET_METHOD(exports, "TTF_Init", TTF_Init_Callback);
+  NAPI_SET_METHOD(exports, "TTF_OpenFont", TTF_OpenFont_Callback);
+  NAPI_SET_METHOD(exports, "TTF_CloseFont", TTF_CloseFont_Callback);
+  NAPI_SET_METHOD(exports, "TTF_RenderText_Solid", TTF_RenderText_Solid_Callback);
 
   return exports;
 }

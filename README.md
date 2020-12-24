@@ -5,14 +5,27 @@ It is heavily inspired in [node-sdl](https://github.com/creationix/node-sdl).
 You can use napi_sdl2 alone but recommend to use it with [napi_openvg](https://github.com/yubin1026/napi_openvg).  
 
 ## Supported OS
-Currently only macOS but will support others soon.
 
+ * macOS
+ * Linux
 
 ## Installation
 
-```javascript
+### Prepare base system
+
+#### MacOS
+
+```sh
 brew install SDL2
 ```
+
+#### Linux
+
+```sh
+sudo apt install libsdl2-ttf-dev libsdl2-dev
+```
+
+### Setup  Node module
 
 ```javascript
 npm install napi_sdl2
@@ -27,6 +40,7 @@ const SDL2 = require('napi_sdl2');
 ## Example
 
 Initialize and create SDL window
+
 ```javascript
 SDL2.SDL_Init(SDL2.SDL_INIT_EVERYTHING);
 
