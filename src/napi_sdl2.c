@@ -1,6 +1,11 @@
+
+#include <SDL2/SDL.h>
+//#include <SDL.h>
+//#include <SDL_opengl.h>
+
+#define NAPI_VERSION 5
 #include <node_api.h>
-#include <SDL.h>
-#include <SDL_opengl.h>
+
 #include <stdio.h>
 #include <stdint.h>
 
@@ -42,6 +47,36 @@ napi_value SDL_Quit_Callback(napi_env env, napi_callback_info info) {
 
   napi_value ret;
   napi_get_undefined(env, &ret);
+  return ret;
+}
+
+//
+
+napi_value SDL_GetDesktopDisplayMode_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 1;
+  napi_value argv[1];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int displayIndex;
+  napi_get_value_int32(env, argv[0], &displayIndex);
+
+  SDL_DisplayMode dm;
+
+  SDL_GetDesktopDisplayMode(displayIndex, &dm);
+
+  // return array....
+  napi_value ret;
+  napi_create_array_with_length(env, 2, &ret);
+
+  napi_value e1;
+  napi_create_int32(env, dm.w, &e1);
+  napi_set_element(env, ret, 0, e1);
+
+  napi_value e2;
+  napi_create_int32(env, dm.h, &e2);
+  napi_set_element(env, ret, 1, e2);
+
   return ret;
 }
 
@@ -112,7 +147,6 @@ napi_value SDL_GetWindowSize_Callback(napi_env env, napi_callback_info info) {
   //napi_value obj;
   //napi_create_object(env, &obj);
 
-  
   return ret;
 }
 
@@ -846,6 +880,7 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_DEFINE_CONSTANT(exports, SDL_WINDOW_RESIZABLE);
   NAPI_DEFINE_CONSTANT(exports, SDL_WINDOW_OPENGL);
   NAPI_DEFINE_CONSTANT(exports, SDL_WINDOW_SHOWN);
+  NAPI_DEFINE_CONSTANT(exports, SDL_WINDOW_FULLSCREEN);
   NAPI_DEFINE_CONSTANT(exports, SDL_PIXELFORMAT_ARGB8888);
 
 
@@ -861,7 +896,6 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_DEFINE_CONSTANT(exports, SDL_ADDEVENT);
   NAPI_DEFINE_CONSTANT(exports, SDL_PEEKEVENT);
   NAPI_DEFINE_CONSTANT(exports, SDL_GETEVENT);
-
 
 
   NAPI_DEFINE_CONSTANT(exports, SDLK_ESCAPE);
@@ -913,6 +947,8 @@ napi_value Init(napi_env env, napi_value exports) {
 
   NAPI_SET_METHOD(exports, "SDL_Init", SDL_Init_Callback);
   NAPI_SET_METHOD(exports, "SDL_Quit", SDL_Quit_Callback);
+
+  NAPI_SET_METHOD(exports, "SDL_GetDesktopDisplayMode", SDL_GetDesktopDisplayMode_Callback);
 
   NAPI_SET_METHOD(exports, "SDL_CreateWindow", SDL_CreateWindow_Callback);
   NAPI_SET_METHOD(exports, "SDL_DestroyWindow", SDL_DestroyWindow_Callback);
