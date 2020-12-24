@@ -28,6 +28,9 @@ function main() {
 
     SDL2.SDL_Init(SDL2.SDL_INIT_EVERYTHING);
 
+    const numVideoDisplays = SDL2.SDL_GetNumVideoDisplays();
+    console.log(`Number video displays: ${numVideoDisplays}`);
+
     const displayIndex = 0;
     const [w, h] = SDL2.SDL_GetDesktopDisplayMode(displayIndex);
 

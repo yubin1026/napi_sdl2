@@ -50,7 +50,21 @@ napi_value SDL_Quit_Callback(napi_env env, napi_callback_info info) {
   return ret;
 }
 
-//
+// displays
+
+napi_value SDL_GetNumVideoDisplays_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 0;
+  napi_value argv[0];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int num;
+  num = SDL_GetNumVideoDisplays();
+
+  napi_value ret;
+  napi_create_int64(env, (int64_t) num, &ret);
+  return ret;
+}
 
 napi_value SDL_GetDesktopDisplayMode_Callback(napi_env env, napi_callback_info info) {
 
@@ -948,6 +962,7 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_SET_METHOD(exports, "SDL_Init", SDL_Init_Callback);
   NAPI_SET_METHOD(exports, "SDL_Quit", SDL_Quit_Callback);
 
+  NAPI_SET_METHOD(exports, "SDL_GetNumVideoDisplays", SDL_GetNumVideoDisplays_Callback);
   NAPI_SET_METHOD(exports, "SDL_GetDesktopDisplayMode", SDL_GetDesktopDisplayMode_Callback);
 
   NAPI_SET_METHOD(exports, "SDL_CreateWindow", SDL_CreateWindow_Callback);
