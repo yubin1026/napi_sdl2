@@ -3,7 +3,7 @@
   "name": "napi_sdl2",
   "description": "SDL2 bindings with N-API",
   "version": "0.1.3",
-  "main": "index.js",
+  "main": "index.mjs",
   "repository": {
     "type": "git",
     "url": "git://github.com/yubin1026/napi_sdl2.git"
