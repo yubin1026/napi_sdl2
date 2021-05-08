@@ -20,13 +20,13 @@ sudo apt install libsdl2-ttf-dev libsdl2-dev
 ### Setup Node module
 
 ```javascript
-npm install napi_sdl2_contrib
+npm install @vit1251/napi_sdl2
 ```
 
 ## Usage
 
 ```javascript
-const SDL2 = require('napi_sdl2');
+import SDL2 from '@vit1251/napi_sdl2';
 ```
 
 ## Example
@@ -40,7 +40,7 @@ let [screen_width, screen_height] = [800, 800];
 let sdl_window = SDL2.SDL_CreateWindow("SDL Sample", 
 	0, 0, screen_width, screen_height, SDL2.SDL_WINDOW_SHOWN | SDL2.SDL_WINDOW_RESIZABLE);
 	let sdl_renderer = SDL2.SDL_CreateRenderer( sdl_window, -1, SDL2.SDL_RENDERER_ACCELERATED );
- //Initialize renderer color
+//Initialize renderer color
 SDL2.SDL_SetRenderDrawColor( sdl_renderer, [0xFF, 0xFF, 0xFF, 0xFF]);
 ```
 
@@ -59,7 +59,7 @@ while(1) {
 
 Rendering graphics
 ```javascript
-let [screen_width, screen_height] = SDL2.SDL_GetWindowSize(context.window);
+const [screen_width, screen_height] = SDL2.SDL_GetWindowSize(context.window);
 //Clear screen
 SDL2.SDL_SetRenderDrawColor( context.renderer, [0xFF, 0xFF, 0xFF, 0xFF] );
 SDL2.SDL_RenderClear( context.renderer );
