@@ -1,34 +1,26 @@
 # napi_sdl2
 
-The goal of this library provides SDL2 bindings for node using N-API.  
-It is heavily inspired in [node-sdl](https://github.com/creationix/node-sdl).  
-You can use napi_sdl2 alone but recommend to use it with [napi_openvg](https://github.com/yubin1026/napi_openvg).  
+The goal of this library provides SDL2 bindings for node using N-API.
+It is heavily inspired in [node-sdl](https://github.com/creationix/node-sdl).
+It is heavily inspired in [napi-sdl2](https://github.com/yubin1026/napi_sdl2).
 
 ## Supported OS
 
- * macOS
  * Linux
 
 ## Installation
 
 ### Prepare base system
 
-#### MacOS
-
-```sh
-brew install SDL2
-```
-
 #### Linux
 
 ```sh
 sudo apt install libsdl2-ttf-dev libsdl2-dev
 ```
-
-### Setup  Node module
+### Setup Node module
 
 ```javascript
-npm install napi_sdl2
+npm install napi_sdl2_contrib
 ```
 
 ## Usage
@@ -79,16 +71,3 @@ SDL2.SDL_RenderFillRect( context.renderer, [screen_width / 4, screen_height / 4,
 //Update screen
 SDL2.SDL_RenderPresent( context.renderer );
 ```
-
-## License
-
-(The MIT License)
-
-Copyright (c) 2018 Yubin
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-

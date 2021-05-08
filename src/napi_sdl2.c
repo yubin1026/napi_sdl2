@@ -10,22 +10,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define NAPI_DEFINE_CONSTANT(target, constant)                           \
-  do {                                                                   \
-    napi_value v = NULL;                                                 \
-    napi_create_int32(env, constant, &v);                                \
-    napi_set_named_property(env, target, #constant, v);                  \
-  }                                                                      \
-  while (0)
-
-
-#define NAPI_SET_METHOD(target, name, callback)                         \
-  do {                                                                  \
-    napi_value fn = NULL;                                               \
-    napi_create_function(env, NULL, 0, callback, NULL, &fn);            \
-    napi_set_named_property(env, target, name, fn);                     \
-  }                                                                     \
-  while (0)
+#include "napi_sdl2.h"
 
 
 napi_value SDL_Init_Callback(napi_env env, napi_callback_info info) {
@@ -45,6 +30,14 @@ napi_value SDL_Init_Callback(napi_env env, napi_callback_info info) {
 
 napi_value SDL_Quit_Callback(napi_env env, napi_callback_info info) {
   SDL_Quit();
+
+  napi_value ret;
+  napi_get_undefined(env, &ret);
+  return ret;
+}
+
+napi_value SDL_DisableScreenSaver_Callback(napi_env env, napi_callback_info info) {
+  SDL_DisableScreenSaver();
 
   napi_value ret;
   napi_get_undefined(env, &ret);
@@ -1191,6 +1184,8 @@ napi_value Init(napi_env env, napi_value exports) {
 
   NAPI_SET_METHOD(exports, "SDL_Init", SDL_Init_Callback);
   NAPI_SET_METHOD(exports, "SDL_Quit", SDL_Quit_Callback);
+
+  NAPI_SET_METHOD(exports, "SDL_DisableScreenSaver", SDL_DisableScreenSaver_Callback);
 
   NAPI_SET_METHOD(exports, "SDL_GetNumVideoDisplays", SDL_GetNumVideoDisplays_Callback);
   NAPI_SET_METHOD(exports, "SDL_GetDesktopDisplayMode", SDL_GetDesktopDisplayMode_Callback);
