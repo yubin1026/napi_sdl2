@@ -1,25 +1,16 @@
+
+#include <SDL2/SDL.h>
+//#include <SDL.h>
+//#include <SDL_opengl.h>
+#include <SDL2/SDL_ttf.h>
+
+#define NAPI_VERSION 5
 #include <node_api.h>
-#include <SDL.h>
-#include <SDL_opengl.h>
+
 #include <stdio.h>
 #include <stdint.h>
 
-#define NAPI_DEFINE_CONSTANT(target, constant)                           \
-  do {                                                                   \
-    napi_value v = NULL;                                                 \
-    napi_create_int32(env, constant, &v);                                \
-    napi_set_named_property(env, target, #constant, v);                  \
-  }                                                                      \
-  while (0)
-
-
-#define NAPI_SET_METHOD(target, name, callback)                         \
-  do {                                                                  \
-    napi_value fn = NULL;                                               \
-    napi_create_function(env, NULL, 0, callback, NULL, &fn);            \
-    napi_set_named_property(env, target, name, fn);                     \
-  }                                                                     \
-  while (0)
+#include "napi_sdl2.h"
 
 
 napi_value SDL_Init_Callback(napi_env env, napi_callback_info info) {
@@ -42,6 +33,58 @@ napi_value SDL_Quit_Callback(napi_env env, napi_callback_info info) {
 
   napi_value ret;
   napi_get_undefined(env, &ret);
+  return ret;
+}
+
+napi_value SDL_DisableScreenSaver_Callback(napi_env env, napi_callback_info info) {
+  SDL_DisableScreenSaver();
+
+  napi_value ret;
+  napi_get_undefined(env, &ret);
+  return ret;
+}
+
+// displays
+
+napi_value SDL_GetNumVideoDisplays_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 0;
+  napi_value argv[0];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int num;
+  num = SDL_GetNumVideoDisplays();
+
+  napi_value ret;
+  napi_create_int64(env, (int64_t) num, &ret);
+  return ret;
+}
+
+napi_value SDL_GetDesktopDisplayMode_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 1;
+  napi_value argv[1];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int displayIndex;
+  napi_get_value_int32(env, argv[0], &displayIndex);
+
+  SDL_DisplayMode dm;
+
+  SDL_GetDesktopDisplayMode(displayIndex, &dm);
+
+  // return array....
+  napi_value ret;
+  napi_create_array_with_length(env, 2, &ret);
+
+  napi_value e1;
+  napi_create_int32(env, dm.w, &e1);
+  napi_set_element(env, ret, 0, e1);
+
+  napi_value e2;
+  napi_create_int32(env, dm.h, &e2);
+  napi_set_element(env, ret, 1, e2);
+
   return ret;
 }
 
@@ -112,7 +155,6 @@ napi_value SDL_GetWindowSize_Callback(napi_env env, napi_callback_info info) {
   //napi_value obj;
   //napi_create_object(env, &obj);
 
-  
   return ret;
 }
 
@@ -295,21 +337,63 @@ napi_value SDL_RenderCopy_Callback(napi_env env, napi_callback_info info) {
   size_t argc = 4;
   napi_value argv[4];
   napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+  bool ok;
+  SDL_Rect SrcR;
+  SDL_Rect DestR;
+  SDL_Rect *pSrcR = &SrcR;
+  SDL_Rect *pDestR = &DestR;
 
-  int64_t arg0, arg1;
+  /* SDL_Renderer */
+  int64_t arg0;
   napi_get_value_int64(env, argv[0], &arg0);
+
+  /* SDL_Texture */
+  int64_t arg1;
   napi_get_value_int64(env, argv[1], &arg1);
 
-  int arg2, arg3;
-  napi_get_value_int32(env, argv[2], &arg2);
-  napi_get_value_int32(env, argv[3], &arg3);
+  /* SrcR */
+  napi_is_array(env, argv[2], &ok);
+  if (ok) {
+    int arg2[4];
+    for(int i = 0; i < 4; i++) {
+      napi_value e;
+      napi_get_element(env, argv[2], i, &e);
+      int v;
+      napi_get_value_int32(env, e, &v);
+      arg2[i] = (int) v;
+    }
+    SrcR.x = arg2[0];
+    SrcR.y = arg2[1];
+    SrcR.w = arg2[2];
+    SrcR.h = arg2[3];
+  } else {
+    pSrcR = NULL;
+  }
 
-  // to do implement
-  SDL_RenderCopy((SDL_Renderer*) arg0, (SDL_Texture*) arg1, NULL, NULL);
+  /* DestR */
+  napi_is_array(env, argv[3], &ok);
+  if (ok) {
+    int arg3[4];
+    for(int i = 0; i < 4; i++) {
+      napi_value e;
+      napi_get_element(env, argv[3], i, &e);
+      int v;
+      napi_get_value_int32(env, e, &v);
+      arg3[i] = (int) v;
+    }
+    DestR.x = arg3[0];
+    DestR.y = arg3[1];
+    DestR.w = arg3[2];
+    DestR.h = arg3[3];
+  } else {
+    pDestR = NULL;
+  }
+
+  //
+  SDL_RenderCopy((SDL_Renderer*) arg0, (SDL_Texture*) arg1, pSrcR, pDestR);
 
   napi_value ret;
   napi_get_undefined(env, &ret);
-  
   return ret;
 }
 
@@ -368,7 +452,63 @@ napi_value SDL_UpdateTexture_Callback(napi_env env, napi_callback_info info) {
 
   napi_value ret;
   napi_get_undefined(env, &ret);
-  
+  return ret;
+}
+
+napi_value SDL_QueryTexture_Callback(napi_env env, napi_callback_info info) {
+  size_t argc = 1;
+  napi_value argv[1];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int64_t arg0;
+  napi_get_value_int64(env, argv[0], &arg0);
+
+  int w, h;
+  SDL_QueryTexture((SDL_Texture*) arg0, NULL, NULL, &w, &h);
+
+  napi_value ret;
+  napi_create_array_with_length(env, 2, &ret);
+
+  napi_value e1;
+  napi_create_int32(env, w, &e1);
+  napi_set_element(env, ret, 0, e1);
+
+  napi_value e2;
+  napi_create_int32(env, h, &e2);
+  napi_set_element(env, ret, 1, e2);
+
+  return ret;
+}
+
+napi_value SDL_CreateTextureFromSurface_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 2;
+  napi_value argv[2];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int arg0, arg1;
+  napi_get_value_int32(env, argv[0], &arg0);
+  napi_get_value_int32(env, argv[1], &arg1);
+
+  SDL_Texture *texture = SDL_CreateTextureFromSurface((SDL_Renderer*)arg0, (SDL_Surface*)arg1);
+
+  napi_value ret;
+  napi_create_int64(env, (int64_t) texture, &ret);
+  return ret;
+}
+
+napi_value SDL_FreeSurface_Callback(napi_env env, napi_callback_info info) {
+  size_t argc = 1;
+  napi_value argv[1];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int arg0;
+  napi_get_value_int32(env, argv[0], &arg0);
+
+  SDL_FreeSurface((SDL_Surface*)arg0);
+
+  napi_value ret;
+  napi_get_undefined(env, &ret);
   return ret;
 }
 
@@ -837,6 +977,137 @@ napi_value SDL_CreateSystemCursor_Callback(napi_env env, napi_callback_info info
 
 /////
 
+napi_value TTF_Init_Callback(napi_env env, napi_callback_info info) {
+  size_t argc = 0;
+  napi_value argv[0];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  TTF_Init();
+
+  napi_value ret;
+  napi_get_undefined(env, &ret);
+  return ret;
+}
+
+napi_value TTF_OpenFont_Callback(napi_env env, napi_callback_info info) {
+  size_t argc = 2;
+  napi_value argv[2];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  char path[256] = {0};
+  size_t len;
+  napi_get_value_string_utf8(env, argv[0], path, 256, &len);
+
+  int size;
+  napi_get_value_int32(env, argv[1], &size);
+
+  TTF_Font* font = TTF_OpenFont(path, size);
+
+  napi_value ret;
+  napi_create_int64(env, (int64_t) font, &ret);
+  return ret;
+}
+
+napi_value TTF_CloseFont_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 1;
+  napi_value argv[1];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+
+  int64_t arg0;
+  napi_get_value_int64(env, argv[0], &arg0);
+
+  TTF_CloseFont((TTF_Font*)arg0);
+
+  napi_value ret;
+  napi_get_undefined(env, &ret);
+  return ret;
+}
+
+napi_value TTF_RenderText_Solid_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 3;
+  napi_value argv[3];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+  bool ok;
+
+  /* TTF_Font */
+  int64_t arg0;
+  napi_get_value_int64(env, argv[0], &arg0);
+
+  /* Text */
+  char arg1[512] = {0};
+  size_t len;
+  napi_get_value_string_utf8(env, argv[1], arg1, 512, &len);
+
+  /* color */
+  SDL_Color color = { 0, 0, 0 };
+
+  napi_is_array(env, argv[2], &ok);
+  if (ok) {
+    int arg2[3];
+    for(int i = 0; i < 3; i++) {
+      napi_value e;
+      napi_get_element(env, argv[2], i, &e);
+      int v;
+      napi_get_value_int32(env, e, &v);
+      arg2[i] = (int) v;
+    }
+    color.r = arg2[0];
+    color.g = arg2[1];
+    color.b = arg2[2];
+  }
+
+  SDL_Surface *surface = TTF_RenderText_Solid((TTF_Font*)arg0, arg1, color);
+
+  napi_value ret;
+  napi_create_int64(env, (int64_t) surface, &ret);
+  return ret;
+}
+
+napi_value TTF_RenderUTF8_Solid_Callback(napi_env env, napi_callback_info info) {
+
+  size_t argc = 3;
+  napi_value argv[3];
+  napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+  bool ok;
+
+  /* TTF_Font */
+  int64_t arg0;
+  napi_get_value_int64(env, argv[0], &arg0);
+
+  /* Text */
+  char arg1[512] = {0};
+  size_t len;
+  napi_get_value_string_utf8(env, argv[1], arg1, 512, &len);
+
+  /* color */
+  SDL_Color color = { 0, 0, 0 };
+
+  napi_is_array(env, argv[2], &ok);
+  if (ok) {
+    int arg2[3];
+    for(int i = 0; i < 3; i++) {
+      napi_value e;
+      napi_get_element(env, argv[2], i, &e);
+      int v;
+      napi_get_value_int32(env, e, &v);
+      arg2[i] = (int) v;
+    }
+    color.r = arg2[0];
+    color.g = arg2[1];
+    color.b = arg2[2];
+  }
+
+  SDL_Surface *surface = TTF_RenderUTF8_Solid((TTF_Font*)arg0, arg1, color);
+
+  napi_value ret;
+  napi_create_int64(env, (int64_t) surface, &ret);
+  return ret;
+}
+
+/////
+
 napi_value Init(napi_env env, napi_value exports) {
 
   NAPI_DEFINE_CONSTANT(exports, SDL_INIT_VIDEO);
@@ -846,6 +1117,7 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_DEFINE_CONSTANT(exports, SDL_WINDOW_RESIZABLE);
   NAPI_DEFINE_CONSTANT(exports, SDL_WINDOW_OPENGL);
   NAPI_DEFINE_CONSTANT(exports, SDL_WINDOW_SHOWN);
+  NAPI_DEFINE_CONSTANT(exports, SDL_WINDOW_FULLSCREEN);
   NAPI_DEFINE_CONSTANT(exports, SDL_PIXELFORMAT_ARGB8888);
 
 
@@ -861,7 +1133,6 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_DEFINE_CONSTANT(exports, SDL_ADDEVENT);
   NAPI_DEFINE_CONSTANT(exports, SDL_PEEKEVENT);
   NAPI_DEFINE_CONSTANT(exports, SDL_GETEVENT);
-
 
 
   NAPI_DEFINE_CONSTANT(exports, SDLK_ESCAPE);
@@ -884,7 +1155,7 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_DEFINE_CONSTANT(exports, KMOD_CTRL);
   NAPI_DEFINE_CONSTANT(exports, KMOD_SHIFT);
   NAPI_DEFINE_CONSTANT(exports, KMOD_ALT);
-  
+
 
   NAPI_DEFINE_CONSTANT(exports, SDL_GL_CONTEXT_FLAGS);
   NAPI_DEFINE_CONSTANT(exports, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
@@ -914,6 +1185,11 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_SET_METHOD(exports, "SDL_Init", SDL_Init_Callback);
   NAPI_SET_METHOD(exports, "SDL_Quit", SDL_Quit_Callback);
 
+  NAPI_SET_METHOD(exports, "SDL_DisableScreenSaver", SDL_DisableScreenSaver_Callback);
+
+  NAPI_SET_METHOD(exports, "SDL_GetNumVideoDisplays", SDL_GetNumVideoDisplays_Callback);
+  NAPI_SET_METHOD(exports, "SDL_GetDesktopDisplayMode", SDL_GetDesktopDisplayMode_Callback);
+
   NAPI_SET_METHOD(exports, "SDL_CreateWindow", SDL_CreateWindow_Callback);
   NAPI_SET_METHOD(exports, "SDL_DestroyWindow", SDL_DestroyWindow_Callback);
   NAPI_SET_METHOD(exports, "SDL_GetWindowSize", SDL_GetWindowSize_Callback);
@@ -928,10 +1204,14 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_SET_METHOD(exports, "SDL_RenderCopy", SDL_RenderCopy_Callback);
   NAPI_SET_METHOD(exports, "SDL_RenderFillRect", SDL_RenderFillRect_Callback);
 
-
-  NAPI_SET_METHOD(exports, "SDL_CreateTexture", SDL_CreateTexture_Callback);  
-  NAPI_SET_METHOD(exports, "SDL_DestroyTexture", SDL_DestroyTexture_Callback);  
+  NAPI_SET_METHOD(exports, "SDL_CreateTexture", SDL_CreateTexture_Callback);
+  NAPI_SET_METHOD(exports, "SDL_DestroyTexture", SDL_DestroyTexture_Callback);
   NAPI_SET_METHOD(exports, "SDL_UpdateTexture", SDL_UpdateTexture_Callback);
+  NAPI_SET_METHOD(exports, "SDL_QueryTexture", SDL_QueryTexture_Callback);
+
+  NAPI_SET_METHOD(exports, "SDL_CreateTextureFromSurface", SDL_CreateTextureFromSurface_Callback);
+
+  NAPI_SET_METHOD(exports, "SDL_FreeSurface", SDL_FreeSurface_Callback);
 
   NAPI_SET_METHOD(exports, "SDL_Delay", SDL_Delay_Callback);
   NAPI_SET_METHOD(exports, "SDL_GetTicks", SDL_GetTicks_Callback);
@@ -957,6 +1237,12 @@ napi_value Init(napi_env env, napi_value exports) {
   NAPI_SET_METHOD(exports, "SDL_GL_CreateContext", SDL_GL_CreateContext_Callback);
   NAPI_SET_METHOD(exports, "SDL_GL_SetSwapInterval", SDL_GL_SetSwapInterval_Callback);
   NAPI_SET_METHOD(exports, "SDL_GL_SwapWindow", SDL_GL_SwapWindow_Callback);
+
+  NAPI_SET_METHOD(exports, "TTF_Init", TTF_Init_Callback);
+  NAPI_SET_METHOD(exports, "TTF_OpenFont", TTF_OpenFont_Callback);
+  NAPI_SET_METHOD(exports, "TTF_CloseFont", TTF_CloseFont_Callback);
+  NAPI_SET_METHOD(exports, "TTF_RenderText_Solid", TTF_RenderText_Solid_Callback);
+  NAPI_SET_METHOD(exports, "TTF_RenderUTF8_Solid", TTF_RenderUTF8_Solid_Callback);
 
   return exports;
 }
