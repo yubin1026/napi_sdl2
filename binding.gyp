@@ -10,6 +10,7 @@
                 'libraries': [
                     '-lSDL2',
                     '-lSDL2_ttf',
+                    '-lSDL2_image',
                 ],
                 'include_dirs': [
                     '-I/usr/include/SDL2',
